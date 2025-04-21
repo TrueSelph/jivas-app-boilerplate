@@ -51,12 +51,12 @@ stop-all:
 # Initialize all agents
 init-agents:
 	@echo "Initializing all agents..."
-	docker compose exec -it jivas bash -c "jvcli initagents"
+	docker compose exec -it jivas bash -c "jvcli server initagents"
 	@echo "Agents initialized."
 
 # Import a specific agent
 import-agent:
-	docker compose exec -it jivas bash -c "jvcli importagent $(AGENT)"
+	docker compose exec -it jivas bash -c "jvcli server importagent $(AGENT)"
 
 # Clean MongoDB data
 clean-db:
