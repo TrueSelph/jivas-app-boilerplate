@@ -1,0 +1,46 @@
+services:
+  jivas:
+    image: trueselph/jivas:${JIVAS_VERSION:-latest} # Use the latest version of Jivas by default
+    container_name: jivas
+    env_file:
+      - .env
+    ports:
+      - "8000:8000" # jivas API
+      - "8501:8501" # jvclient UI
+      - "8989:8989" # jvstudio UI
+      - "9000:9000" # jvfileserver API
+    volumes:
+      - ./actions:/app/actions
+      - ./daf:/app/daf
+      - .jvdata:/app/${JIVAS_DESCRIPTOR_ROOT_PATH}
+      - .files:/app/${JIVAS_FILES_ROOT_PATH}
+    restart: always
+    depends_on:
+      - mongo-init
+      - mongo
+  
+  mongo:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    command: ["--replSet", "my-rs"]
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-init:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb-init
+    depends_on:
+      - mongo
+    entrypoint: >
+      bash -c "
+      until mongosh --host mongodb --port 27017 --eval 'print(\"waited for connection\")'; do
+        sleep 5
+      done &&
+      mongosh --host mongodb --port 27017 --eval 'rs.initiate({_id: \"my-rs\", members: [{_id: 0, host: \"mongodb:27017\"}]})'
+      "
+
+volumes:
+  mongo_data:
